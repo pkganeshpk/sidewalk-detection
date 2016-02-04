@@ -1,0 +1,32 @@
+Algorithm for Sidewalk detection
+---
+
+This is the same as the color histogramming approach given in the paper, with extra processing needed for depth. The approach in the paper will generate the red patch for the image output. The depth of the pixels at the red locations will be published in /points_in , and those at non-red locations in /points_out. 
+
+
+ROS Nodes
+---
+
+Only a single ROS node is needed, having the obvious publishers and subscriber:
+
+Subscribers: /camera/depth/points,  /camera/color/image_raw
+Publishers: /sidewalk_detector/color/image_raw /sidewalk_detector/depth/points_in /sidewalk_detector/depth/points_out
+
+This will use two external libraries: OpenCV (for color histogram), PCL (For point cloud processing)
+
+Issues I faced till now
+---
+
+(1) The 2' height of the camera - should it be taken into account at all?
+(2) The feed from /camera/depth/image_raw doesn't show up in rviz, on two separate installations of ROS (indigo and jade) on different machines. Here's the error message in rviz:
+For frame [camera_depth_optical_frame]: Fixed Frame [map] does not exist
+
+I think this shouldn't be a problem, for I can echo the topic and read the values.
+
+Robustness tests
+---
+
+If I get the time, I'll test this on other random sidewalk videos, to see how robust this is. Perhaps the robustness enhancements in the paper can be applied.
+
+
+
