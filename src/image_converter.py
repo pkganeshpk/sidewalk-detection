@@ -6,6 +6,8 @@ import cv2
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
+import numpy as np
+from matplotlib import pyplot as plt
 
 
 
@@ -26,6 +28,10 @@ class image_converter:
       self.color_img = self.bridge.imgmsg_to_cv2(data, "bgr8")
     except CvBridgeError as e:
       print ("Exception:", e)
+    plt.clf()  
+    plt.hist(self.color_img.ravel(),256,[0,256]); 
+    plt.show() 	
+
 
    
   def depth_callback(self,data):
