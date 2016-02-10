@@ -1,13 +1,10 @@
 import rosbag
 import cv2
+from image_converter import image_converter
+
+I = image_converter()
+
+cv2.destroyAllWindows()
 
 
-bag = rosbag.Bag('../realsense.bag', 'r')
 
-# Get list of topics
-for topic, msg, t in bag.read_messages(topics = ['/camera/color/image_raw']):
-   print "!"	
-   clrimg = CvBridge.bridge.imgmsg_to_cv2(data, "bgr8")
-   cv2.imshow('image',clrimg)	
-	
-bag.close()
