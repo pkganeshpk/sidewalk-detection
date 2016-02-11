@@ -32,10 +32,13 @@ class image_converter:
     plt.clf()  
     self.hsv_img = cv2.cvtColor(self.color_img,cv2.COLOR_BGR2HSV)
     hist = cv2.calcHist([self.hsv_img], [0, 1], None, [180, 256], [0, 180, 0, 256])
+    x = 100
+    y = 100 
     
-    plt.imshow(self.color_img.ravel(), [640,480])
+    cv2.imshow('color image', self.color_img)
+    
     #plt.imshow(hist,interpolation = 'nearest') 
-    plt.show() 	
+    cv2.waitKey(1) 	
 
 
    
