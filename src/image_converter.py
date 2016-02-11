@@ -17,11 +17,15 @@ class image_converter:
 
   def __init__(self):
     print 'Image_converter'	
-    rospy.init_node('image_converter', anonymous = True)
+    rospy.init_node('sidewalk_detector', anonymous = True)
     self.bridge = CvBridge()
+
     self.color_sub = rospy.Subscriber("/camera/color/image_raw",Image,self.color_callback)
     self.depth_sub = rospy.Subscriber("/camera/depth/image_raw", Image,self.depth_callback)
 
+    self.color_pub = rospy.Publisher("/color",Image, queue_size = 1)
+    self.depth_in_pub = rospy.Publisher("/depth/points_in", Image , queue_size = 1)	
+    self.depth_out_pub = rospy.Publisher("/depth/points_out",Image, queue_size = 1)	
     	
 
   def color_callback(self,data):
@@ -44,14 +48,26 @@ class image_converter:
 
  
   def process_sidewalk(self):
-	self.flip_img = cv2.flip(self.color_img, -1)
-	 
+	self.flip_img = self.color_img
+	self.depth_in = self.depth_img
+        self.depth_out = self.depth_img
+	print self.flip_img.shape
+	print self.depth_in.shape
+ 
 	print " Shape : ",self.flip_img.shape
 	for i in xrange(self.flip_img.shape[0]):
 		for j in xrange(self.flip_img.shape[1]):
 			px = self.flip_img[i][j]
+			
+			i1 = int(float(i) * 3.0 / 4.0)
+			j1 = int(float(j) * 3.0 / 4.0)
+			
 			if min(px) <= 110 and max(px) >= 90:
-				self.flip_img[i][j] = [0,0,255]
+				self.flip_img[i][j] = [0,0,255]	
+			
+				self.depth_out[i1][j1] = 0
+			else:
+				self.depth_in[i1][j1] = 0
    
   def depth_callback(self,data):
     #print 'depth Callback'	
