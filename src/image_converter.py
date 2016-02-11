@@ -19,7 +19,7 @@ class image_converter:
     self.bridge = CvBridge()
     self.color_sub = rospy.Subscriber("/camera/color/image_raw",Image,self.color_callback)
     self.depth_sub = rospy.Subscriber("/camera/depth/image_raw", Image,self.depth_callback)
-    rospy.spin()
+
     	
 
   def color_callback(self,data):
@@ -31,6 +31,7 @@ class image_converter:
     plt.clf()  
     plt.hist(self.color_img.ravel(),256,[0,256]); 
     plt.show() 	
+
 
 
    
