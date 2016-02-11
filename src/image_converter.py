@@ -28,10 +28,14 @@ class image_converter:
       self.color_img = self.bridge.imgmsg_to_cv2(data, "bgr8")
     except CvBridgeError as e:
       print ("Exception:", e)
+    
     plt.clf()  
-    plt.hist(self.color_img.ravel(),256,[0,256]); 
+    self.hsv_img = cv2.cvtColor(self.color_img,cv2.COLOR_BGR2HSV)
+    hist = cv2.calcHist([self.hsv_img], [0, 1], None, [180, 256], [0, 180, 0, 256])
+    
+    plt.imshow(self.color_img.ravel(), [640,480])
+    #plt.imshow(hist,interpolation = 'nearest') 
     plt.show() 	
-
 
 
    
