@@ -25,11 +25,14 @@ class image_converter:
 
     self.color_pub = rospy.Publisher("/color",Image, queue_size = 1)
     self.depth_in_pub = rospy.Publisher("/depth/points_in", Image , queue_size = 1)	
-    self.depth_out_pub = rospy.Publisher("/depth/points_out",Image, queue_size = 1)	
+    self.depth_out_pub = rospy.Publisher("/depth/points_out",Image, queue_size = 1)
+
+    self.imgcount = 0		
     	
 
   def color_callback(self,data):
-  	
+  
+    	
     try:
       self.color_img = self.bridge.imgmsg_to_cv2(data, "bgr8")
     except CvBridgeError as e:
@@ -39,13 +42,32 @@ class image_converter:
     self.hsv_img = cv2.cvtColor(self.color_img,cv2.COLOR_BGR2HSV)
     hist = cv2.calcHist([self.hsv_img], [0, 1], None, [180, 256], [0, 180, 0, 256])
     
-
+    
+    if(self.imgcount == 0):
+       self.imgcount = 1
+       self.plot_hist()
     #self.color_img[100,100] = [0, 0 ,255]
     self.process_sidewalk()
     cv2.imshow('color image', self.flip_img)
     #plt.imshow(hist,interpolation = 'nearest') 
     cv2.waitKey(1) 	
 
+  def plot_hist(self): 
+    pass	
+
+
+  def redden_sw(self):
+    sw_mask_lower = [90,90,90]
+    sw_mask_upper = [110,110,110]
+	
+    self.red_img = cv2.inRange(self.color_img, sw_mask_lower, sw_mask_upper) 
+    self.non_red_img = cv2.notInRange(self.color_img, sw_mask_lower, sw_mask_upper) 
+				
+    return [red_img,not_red_img]
+
+
+ 			
+	
  
   def process_sidewalk(self):
 	self.flip_img = self.color_img
@@ -53,21 +75,8 @@ class image_converter:
         self.depth_out = self.depth_img
 	print self.flip_img.shape
 	print self.depth_in.shape
- 
-	print " Shape : ",self.flip_img.shape
-	for i in xrange(self.flip_img.shape[0]):
-		for j in xrange(self.flip_img.shape[1]):
-			px = self.flip_img[i][j]
-			
-			i1 = int(float(i) * 3.0 / 4.0)
-			j1 = int(float(j) * 3.0 / 4.0)
-			
-			if min(px) <= 110 and max(px) >= 90:
-				self.flip_img[i][j] = [0,0,255]	
-			
-				self.depth_out[i1][j1] = 0
-			else:
-				self.depth_in[i1][j1] = 0
+ 	
+	
    
   def depth_callback(self,data):
     #print 'depth Callback'	
