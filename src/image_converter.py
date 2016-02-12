@@ -46,27 +46,25 @@ class image_converter:
     if(self.imgcount == 0):
        self.imgcount = 1
        self.redden_sw()
-      # cv2.imshow("red", self.red_img)
+       cv2.imshow("red", self.red_img)
        # scv2.imshow("non_red", self.non_red_img)	
        cv2.waitKey(10)	
    	
 
 
-    self.process_sidewalk()
-    print 'Color = ', self.color_img[100][100]	
+   # self.process_sidewalk()
+
 
   def plot_hist(self): 
     pass	
 
 
   def redden_sw(self):
-    lower = np.array((90,90,90), dtype = "uint8")
-    upper = np.array((110,110,110), dtype = "uint8")
-    self.red_img = cv2.inRange(self.color_img, lower, upper)
+    self.red_img = self.color_img
+    self.red_img[50:200,100:200] = [0,0,255]
+   
 
-    # print self.red_img[1][0]
-    # self.non_red_img = cv2.add(cv2.threshold(self.color_img, 0, 90,  cv2.THRESH_BINARY), cv2.threshold(self.color_img, 111, 255,  cv2.THRESH_BINARY))
-				
+    
 
 
 
