@@ -45,9 +45,7 @@ class image_converter:
     
     if(self.imgcount == 0):
        self.imgcount = 1
-       self.redden_sw()
-       cv2.imshow("red", self.red_img)
-       # scv2.imshow("non_red", self.non_red_img)	
+       self.get_hist_sw()
        cv2.waitKey(10)	
    	
 
@@ -59,10 +57,20 @@ class image_converter:
     pass	
 
 
-  def redden_sw(self):
-    self.red_img = self.color_img
-    self.red_img[50:200,100:200] = [0,0,255]
-   
+
+
+  def get_random_hist(self):
+     size = 55
+     for i in xrange(size):
+	for j in xrange(size):
+		row = random.random() * self.color_img.shape[0] 				     
+		col = random.random() * self.color_img.shape[1]	
+
+
+
+  def get_hist_sw(self):
+    self.hsv_img = cv2.cvtColor(self.color_img[50:200,100:200],cv2.COLOR_BGR2HSV)
+    self.hist_sw = cv2.calcHist([self.hsv_img], [0, 1], None, [180, 256], [0, 180, 0, 256])
 
     
 
