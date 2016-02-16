@@ -1,5 +1,8 @@
 # $(env bash)
 
-while [ True ]; do rosbag play ../realsense.bag ; done
+for i in $(seq 1 10)
+do 
+	rosbag play ../realsense.bag 
+done
 
  
