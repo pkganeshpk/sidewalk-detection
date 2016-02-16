@@ -28,7 +28,7 @@ class image_converter:
     self.depth_out_pub = rospy.Publisher("/depth/points_out",Image, queue_size = 1)
 
     self.imgcount = 0
-    self.p_thresh = 0.7 # Threshold probability for 		
+    self.p_thresh = 0.8 # Threshold probability for 		
     	
 
   def color_callback(self,data):
@@ -46,13 +46,15 @@ class image_converter:
        print 'size of histograms = ', self.hist_sw.shape
        assert(self.hist_bg.shape == self.hist_sw.shape)		
     
-       cv2.imshow('sidewalk', self.hsv_sw)
-       cv2.waitKey(5)	 
+       #cv2.imshow('sidewalk', self.color_img[50:150,100:250])
+       #cv2.waitKey(10)	 
        print 'correl = ', cv2.compareHist(self.hist_sw, self.hist_bg, cv2.cv.CV_COMP_CORREL)
      
     else:
+	#pass
 	self.color_new_img()
         cv2.imshow('red image', self.red_img)
+	cv2.waitKey(1)
     	
   def color_new_img(self):
      print "!"
