@@ -31,26 +31,26 @@ class image_converter:
     	
 
   def color_callback(self,data):
-  
     	
     try:
       self.color_img = self.bridge.imgmsg_to_cv2(data, "bgr8")
     except CvBridgeError as e:
       print ("Exception:", e)
-    
-    plt.clf()  
-    self.hsv_img = cv2.cvtColor(self.color_img,cv2.COLOR_BGR2HSV)
-    hist = cv2.calcHist([self.hsv_img], [0, 1], None, [180, 256], [0, 180, 0, 256])
-    
-    
+  
     if(self.imgcount == 0):
        self.imgcount = 1
        self.get_hist_sw()
+       self.get_hist_bg()
+       print 'distance between histograms = ', cv2.compareHist(self.hist_sw, self.hist_bg, cv2.cv.CV_COMP_CORREL)
+       #cv2.imshow('background', self.hist_bg)
+       #cv2.imshow('sidewalk', self.hist_sw)
+	
        cv2.waitKey(10)	
-   	
+
+    	
 
 
-   # self.process_sidewalk()
+
 
 
   def plot_hist(self): 
@@ -59,21 +59,27 @@ class image_converter:
 
 
 
-  def get_random_hist(self):
-     size = 55
-     for i in xrange(size):
-	for j in xrange(size):
-		row = random.random() * self.color_img.shape[0] 				     
-		col = random.random() * self.color_img.shape[1]	
-
+  def get_hist_bg(self):
+    
+     self.bg_img = self.color_img[200:300,100:200]
+     height = self.bg_img.shape[0]
+     width = self.bg_img.shape[1]	
+     for i in xrange(height):
+	for j in xrange(width):
+		row = np.random.rand() * self.color_img.shape[0] 				     
+		col = np.random.rand() * self.color_img.shape[1]
+                self.bg_img[i][j] =  self.color_img[row][col] 
+     
+      		
+     self.hsv_bg = cv2.cvtColor(self.bg_img,cv2.COLOR_BGR2HSV)
+     self.hist_bg = cv2.calcHist([self.hsv_bg], [0, 1], None, [180, 256], [0, 180, 0, 256]) 
 
 
   def get_hist_sw(self):
-    self.hsv_img = cv2.cvtColor(self.color_img[50:200,100:200],cv2.COLOR_BGR2HSV)
-    self.hist_sw = cv2.calcHist([self.hsv_img], [0, 1], None, [180, 256], [0, 180, 0, 256])
-
+    self.hsv_sw = cv2.cvtColor(self.color_img[50:200,100:200],cv2.COLOR_BGR2HSV)
+    self.hist_sw = cv2.calcHist([self.hsv_sw], [0, 1], None, [180, 256], [0, 180, 0, 256])
     
-
+	
 
 
  			
