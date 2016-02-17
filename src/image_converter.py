@@ -8,7 +8,7 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 from matplotlib import pyplot as plt
-
+import time
 
 
 class image_converter:
@@ -17,28 +17,15 @@ class image_converter:
 
   def __init__(self, ref_img_path, img_dir):
     print 'Image_converter'	
-    #rospy.init_node('sidewalk_detector', anonymous = True)
-    self.bridge = CvBridge()
-
-    #self.color_sub = rospy.Subscriber("/camera/color/image_raw",Image,self.color_callback)
-    #self.depth_sub = rospy.Subscriber("/camera/depth/image_raw", Image,self.depth_callback)
-
-    #self.color_pub = rospy.Publisher("/color",Image, queue_size = 1)
-    #self.depth_in_pub = rospy.Publisher("/depth/points_in", Image , queue_size = 1)	
-    #self.depth_out_pub = rospy.Publisher("/depth/points_out",Image, queue_size = 1)
+ 
 
     self.imgcount = 0
     self.p_thresh = 0.9 # Threshold probability for 
     self.ref_img = cv2.imread(ref_img_path)			
-    print 'Shape of ref_img = ', self.ref_img.shape
     	
     self.get_hist_sw()
     self.get_hist_bg()
-    print 'size of histograms = ', self.hist_sw.shape
-    assert(self.hist_bg.shape == self.hist_sw.shape)		
-    
-    #cv2.imshow('red', self.ref_img[50:200,200:450])
-    #cv2.waitKey(10)	 
+    assert(self.hist_bg.shape == self.hist_sw.shape)			 
     print 'correl = ', cv2.compareHist(self.hist_sw, self.hist_bg, cv2.cv.CV_COMP_CORREL)
     self.cap = 	cv2.VideoCapture(img_dir)
 
@@ -46,9 +33,13 @@ class image_converter:
     while(self.cap.isOpened()):
 	    ret, self.color_img = self.cap.read()
 	    print "!"	
-	    self.color_new_img()
-	    cv2.imshow('red image', self.red_img)
-    	    cv2.waitKey(10) 		
+            self.thres_img = cv2.inRange(self.color_img, np.array([80,80,80]), np.array([120, 120, 120]))
+	    # self.color_new_img()
+            cv2.imshow('color image', self.color_img)
+	    cv2.imshow('thres image', self.thres_img)
+    	    cv2.waitKey(20) 
+	    time.sleep(5)		
+	    		
 
   def color_callback(self,data):
     try:
@@ -80,8 +71,12 @@ class image_converter:
 			prob = float(self.hist_sw[hue][sat]) / sum_freq
 			if (prob > self.p_thresh):
 				self.red_img[i][j] = [ 0, 0, 255] # set to red color 
-				 
 
+
+  
+				 
+  def threshold_sw(self):
+     pass
 
 
   def get_hist_bg(self):
@@ -95,7 +90,7 @@ class image_converter:
 		while (True):
 			row = int(np.random.rand() * self.ref_img.shape[0]) 				     
 			col = int(np.random.rand() * self.ref_img.shape[1])
-			if (50 <= row <=200 and 200<= col <=450):
+			if (50 <= row <= 200 and 200 <= col <= 450):
 				continue
 			else:
 				break
@@ -106,10 +101,11 @@ class image_converter:
      self.hsv_bg = cv2.cvtColor(self.bg_img, cv2.COLOR_BGR2HSV)
      self.hist_bg = cv2.calcHist([self.hsv_bg], [0, 1], None, [180, 256], [0, 180, 0, 256]) 
      self.hist_bg /= self.hsv_bg.shape[0]	
-     ''' Didn't normalize '''
+
 
   def get_hist_sw(self):
     self.hsv_sw = cv2.cvtColor(self.ref_img[50:200,200:450], cv2.COLOR_BGR2HSV)
+  	
     self.hist_sw = cv2.calcHist([self.hsv_sw], [0, 1], None, [180, 256], [0, 180, 0, 256])
     print 'sidewalk histogram:', self.hist_sw.shape
     print 'sidewalk hsv:', self.hsv_sw.shape	
