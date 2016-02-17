@@ -15,17 +15,17 @@ class image_converter:
 
   sidewalk_colors = [ [90, 105] , [90, 105], [90, 105]]
 
-  def __init__(self, ref_img_path):
+  def __init__(self, ref_img_path, img_dir):
     print 'Image_converter'	
-    rospy.init_node('sidewalk_detector', anonymous = True)
+    #rospy.init_node('sidewalk_detector', anonymous = True)
     self.bridge = CvBridge()
 
-    self.color_sub = rospy.Subscriber("/camera/color/image_raw",Image,self.color_callback)
-    self.depth_sub = rospy.Subscriber("/camera/depth/image_raw", Image,self.depth_callback)
+    #self.color_sub = rospy.Subscriber("/camera/color/image_raw",Image,self.color_callback)
+    #self.depth_sub = rospy.Subscriber("/camera/depth/image_raw", Image,self.depth_callback)
 
-    self.color_pub = rospy.Publisher("/color",Image, queue_size = 1)
-    self.depth_in_pub = rospy.Publisher("/depth/points_in", Image , queue_size = 1)	
-    self.depth_out_pub = rospy.Publisher("/depth/points_out",Image, queue_size = 1)
+    #self.color_pub = rospy.Publisher("/color",Image, queue_size = 1)
+    #self.depth_in_pub = rospy.Publisher("/depth/points_in", Image , queue_size = 1)	
+    #self.depth_out_pub = rospy.Publisher("/depth/points_out",Image, queue_size = 1)
 
     self.imgcount = 0
     self.p_thresh = 0.9 # Threshold probability for 
@@ -40,7 +40,15 @@ class image_converter:
     #cv2.imshow('red', self.ref_img[50:200,200:450])
     #cv2.waitKey(10)	 
     print 'correl = ', cv2.compareHist(self.hist_sw, self.hist_bg, cv2.cv.CV_COMP_CORREL)
+    self.cap = 	cv2.VideoCapture(img_dir)
 
+  def run_no_ros(self):  
+    while(self.cap.isOpened()):
+	    ret, self.color_img = self.cap.read()
+	    print "!"	
+	    self.color_new_img()
+	    cv2.imshow('red image', self.red_img)
+    	    cv2.waitKey(10) 		
 
   def color_callback(self,data):
     try:
@@ -50,9 +58,7 @@ class image_converter:
   
   
 	
-    self.color_new_img()
-    cv2.imshow('red image', self.red_img)
-    cv2.waitKey(10)
+  
 	
     	
   def color_new_img(self):
