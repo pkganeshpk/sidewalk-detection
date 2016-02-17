@@ -46,15 +46,16 @@ class image_converter:
        print 'size of histograms = ', self.hist_sw.shape
        assert(self.hist_bg.shape == self.hist_sw.shape)		
     
-       #cv2.imshow('sidewalk', self.color_img[50:150,100:250])
+       cv2.imshow('background', self.bg_img)
        #cv2.waitKey(10)	 
        print 'correl = ', cv2.compareHist(self.hist_sw, self.hist_bg, cv2.cv.CV_COMP_CORREL)
      
     else:
-	#pass
+	pass
 	self.color_new_img()
         cv2.imshow('red image', self.red_img)
 	cv2.waitKey(1)
+	
     	
   def color_new_img(self):
      print "!"
@@ -75,7 +76,7 @@ class image_converter:
 		if (sum_freq > 0):	
 			prob = float(self.hist_sw[hue][sat]) / sum_freq
 			if (prob > self.p_thresh):
-				self.red_img[i][j] = [255, 0, 0] # set to red color 
+				self.red_img[i][j] = [ 0, 0, 255] # set to red color 
 				 
 
 
@@ -94,6 +95,7 @@ class image_converter:
       		
      self.hsv_bg = cv2.cvtColor(self.bg_img, cv2.COLOR_BGR2HSV)
      self.hist_bg = cv2.calcHist([self.hsv_bg], [0, 1], None, [180, 256], [0, 180, 0, 256]) 
+     self.hist_bg /= self.hsv_bg.shape[0]	
      ''' Didn't normalize '''
 
   def get_hist_sw(self):
@@ -101,6 +103,7 @@ class image_converter:
     self.hist_sw = cv2.calcHist([self.hsv_sw], [0, 1], None, [180, 256], [0, 180, 0, 256])
     print 'sidewalk histogram:', self.hist_sw.shape
     print 'sidewalk hsv:', self.hsv_sw.shape	
+    self.hist_sw /= self.hsv_sw.shape[0]		
 	
  	
 	
