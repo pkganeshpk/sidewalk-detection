@@ -9,7 +9,7 @@ from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 from matplotlib import pyplot as plt
 import time
-
+import math
 
 class image_converter:
 
@@ -32,13 +32,25 @@ class image_converter:
   def run_no_ros(self):  
     while(self.cap.isOpened()):
 	    ret, self.color_img = self.cap.read()
-	    print "!"	
+	    self.find_lines()	
 
 	    self.color_new_img()
             cv2.imshow('color image', self.color_img)
-	    cv2.imshow('red image', self.red_img)
+            cv2.imshow('edges', self.edges)
+
     	    cv2.waitKey(20) 
-	    time.sleep(5)		
+	    time.sleep(5)
+
+
+  def find_lines(self):
+
+	    gray = cv2.cvtColor(self.color_img,cv2.COLOR_BGR2GRAY)
+	    self.edges = cv2.Canny(gray,80,120,apertureSize = 3)
+	    minLineLength = 100
+	    maxLineGap = 10
+	    self.lines = cv2.HoughLinesP(self.edges,1,np.pi/180,100,minLineLength,maxLineGap)
+	    for x1,y1,x2,y2 in self.lines[0]:
+    		cv2.line(self.edges,(x1,y1),(x2,y2),(0,255,0),2)
 	    		
 
   def color_callback(self,data):
