@@ -28,6 +28,7 @@ class image_converter:
     assert(self.hist_bg.shape == self.hist_sw.shape)			 
     print 'correl = ', cv2.compareHist(self.hist_sw, self.hist_bg, cv2.cv.CV_COMP_CORREL)
     self.cap = 	cv2.VideoCapture(img_dir)
+    self.bgsub = cv2.BackgroundSubtractorMOG()	
 
   def run_no_ros(self):  
     while(self.cap.isOpened()):
@@ -36,7 +37,7 @@ class image_converter:
 
 	    self.color_new_img()
             cv2.imshow('color image', self.color_img)
-            cv2.imshow('edges', self.edges)
+            # cv2.imshow('edges', self.edges)
 
     	    cv2.waitKey(20) 
 	    time.sleep(5)
@@ -48,9 +49,9 @@ class image_converter:
 	    self.edges = cv2.Canny(gray,0,250,apertureSize = 3)
 	    minLineLength = 50
 	    maxLineGap = 20
-	    self.lines = cv2.HoughLinesP(self.edges, 1, math.pi/180, 100,minLineLength,maxLineGap)
-	    for x1,y1,x2,y2 in self.lines[0]:
-    		cv2.line(self.color_img,(x1,y1),(x2,y2),(0,255,255),2)
+	    self.lines = cv2.HoughLinesP(self.edges, 1, math.pi / 180, 100,minLineLength,maxLineGap)
+	   # for x1,y1,x2,y2 in self.lines[0]:
+    		#cv2.line(self.red_img,(x1,y1),(x2,y2),(0,255,255),2)
 	    		
 
   def color_callback(self,data):
@@ -68,10 +69,16 @@ class image_converter:
      self.hsv_cur = cv2.cvtColor(self.color_img, cv2.COLOR_BGR2HSV)
      rows = self.hsv_cur.shape[0]
      cols = self.hsv_cur.shape[1]
-     # assert(self.hist_sw.shape == self.hsv_cur.shape)
+    
+     assert(self.hsv_cur.shape == self.color_img.shape)
      self.thres_img = cv2.inRange(self.color_img, np.array([80,80,80]), np.array([130, 130, 130]))	
 
-     self.red_img = self.color_img[:]	
+     self.red_img = self.color_img[:]
+
+     
+     self.fg = self.bgsub.apply(self.color_img) 
+     cv2.imshow('foreground', self.fg)	
+     #print "fg image = ", self.fg, " min = " , min(self.fg), " max = ", max(self.fg)	 	
      for i in xrange(rows):
 	for j in xrange(cols):
 		
@@ -82,7 +89,8 @@ class image_converter:
 		if (sum_freq > 0 ):
 		
 			prob = float(self.hist_sw[hue][sat]) / sum_freq
-			if (prob > self.p_thresh or self.thres_img[i][j] == 255 ):
+			if (prob > self.p_thresh and (self.thres_img[i][j] == 255 or self.fg[i][j] == 0 )):
+				
 				self.red_img[i][j] = [ 0, 0, 255] # set to red color 
 
 
