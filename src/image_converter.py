@@ -33,10 +33,10 @@ class image_converter:
     while(self.cap.isOpened()):
 	    ret, self.color_img = self.cap.read()
 	    print "!"	
-            self.thres_img = cv2.inRange(self.color_img, np.array([80,80,80]), np.array([120, 120, 120]))
-	    # self.color_new_img()
+
+	    self.color_new_img()
             cv2.imshow('color image', self.color_img)
-	    cv2.imshow('thres image', self.thres_img)
+	    cv2.imshow('red image', self.red_img)
     	    cv2.waitKey(20) 
 	    time.sleep(5)		
 	    		
@@ -57,7 +57,7 @@ class image_converter:
      rows = self.hsv_cur.shape[0]
      cols = self.hsv_cur.shape[1]
      # assert(self.hist_sw.shape == self.hsv_cur.shape)
-
+     self.thres_img = cv2.inRange(self.color_img, np.array([80,80,80]), np.array([130, 130, 130]))	
 
      self.red_img = self.color_img[:]	
      for i in xrange(rows):
@@ -67,9 +67,10 @@ class image_converter:
                 assert(hue <= self.hist_sw.shape[0] and sat <= self.hist_sw.shape[1])
 		
 		sum_freq = float(self.hist_bg[hue][sat] + self.hist_sw[hue][sat])
-		if (sum_freq > 0):	
+		if (sum_freq > 0 ):
+		
 			prob = float(self.hist_sw[hue][sat]) / sum_freq
-			if (prob > self.p_thresh):
+			if (prob > self.p_thresh or self.thres_img[i][j] == 255 ):
 				self.red_img[i][j] = [ 0, 0, 255] # set to red color 
 
 
