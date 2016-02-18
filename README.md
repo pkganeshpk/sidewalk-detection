@@ -6,6 +6,7 @@
 The implementation uses the approach given in the paper linked, **except** for the issues given later below. To run, place a training image in "src/images/frame0000.jpg" to get the sidewalk and background areas.
 
 shell1$ rosplay realsense.bag
+
 shell2$ cd src; python detect_node.py
 
 This will publish the images to the concerned topics, as well as dump output files in the out/ folder.
