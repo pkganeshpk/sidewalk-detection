@@ -32,7 +32,9 @@ class image_converter:
     self.depth_in_pub = rospy.Publisher("/sidewalk_detector/depth/points_in", Image , queue_size = 1)	
     self.depth_out_pub = rospy.Publisher("/sidewalk_detector/depth/points_out",Image, queue_size = 1)
 
-
+    self.red_img = None
+    self.depth_img_in = None
+    self.depth_img_out = None 	
 	    		
 
   def color_callback(self,data):
@@ -113,18 +115,33 @@ class image_converter:
     try:
       self.depth_img = self.bridge.imgmsg_to_cv2(data, "16UC1")
     except CvBridgeError as e:
-      print ("Exception:", e)
+      print ("Depth subscriber Exception:", e)
 
-    row_ratio = float(self.depth_img.shape[0]) / float(self.color_img.shape[0])
-    col_ratio = float(self.depth_img.shape[1]) / float(self.color_img.shape[1])  
-	
+    row_ratio = float(self.color_img.shape[0]) / float(self.depth_img.shape[0])  
+    col_ratio = float(self.color_img.shape[1]) / float(self.depth_img.shape[1])  
+
     self.depth_img_in = self.depth_img.copy()
-    self.depth_img_out = self.depth_img.copy()
+    self.depth_img_out = self.depth_img.copy()	
 
     for i in xrange(self.depth_img.shape[0]):
 	for j in xrange(self.depth_img.shape[1]):
+		i2 = int(row_ratio * i)
+		j2 = int(col_ratio * j) 
 
+		if (self.red_img[i2][j2][0] == 0 and self.red_img[i2][j2][1] == 0 and self.red_img[i2][j2][2] == 255):
+			self.depth_img_in[i][j] = 255 # Color White
+			self.depth_img_out[i][j] = 0
+		else:
+			self.depth_img_in[i][j] = 0
+			self.depth_img_out[i][j] = 255	
      
-	
+    cv2.imshow("depth", self.depth_img)
+    cv2.imshow("depth_out", self.depth_img_out)
+    cv2.waitKey(5)	 
+    try:
+      self.depth_in_pub.publish(self.bridge.cv2_to_imgmsg(self.depth_img_in, "16UC1"))
+      self.depth_out_pub.publish(self.bridge.cv2_to_imgmsg(self.depth_img_out, "16UC1"))
+    except CvBridgeError as e:
+      print "Publication Exception:", e 			
 
 
