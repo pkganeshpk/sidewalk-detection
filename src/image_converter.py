@@ -20,7 +20,7 @@ class image_converter:
  
 
     self.imgcount = 0
-    self.p_thresh = 0.9 # Threshold probability for 
+    self.p_thresh = 0.5 # Threshold probability for 
     self.ref_img = cv2.imread(ref_img_path)			
     	
     self.get_hist_sw()
@@ -76,9 +76,8 @@ class image_converter:
      self.red_img = self.color_img[:]
 
      
-     self.fg = self.bgsub.apply(self.color_img) 
-     cv2.imshow('foreground', self.fg)	
-     #print "fg image = ", self.fg, " min = " , min(self.fg), " max = ", max(self.fg)	 	
+   
+
      for i in xrange(rows):
 	for j in xrange(cols):
 		
@@ -89,7 +88,7 @@ class image_converter:
 		if (sum_freq > 0 ):
 		
 			prob = float(self.hist_sw[hue][sat]) / sum_freq
-			if (prob > self.p_thresh and (self.thres_img[i][j] == 255 or self.fg[i][j] == 0 )):
+			if (prob > self.p_thresh and self.thres_img[i][j] == 255  ):
 				
 				self.red_img[i][j] = [ 0, 0, 255] # set to red color 
 
@@ -120,17 +119,18 @@ class image_converter:
      
       		
      self.hsv_bg = cv2.cvtColor(self.bg_img, cv2.COLOR_BGR2HSV)
-     self.hist_bg = cv2.calcHist([self.hsv_bg], [0, 1], None, [180, 256], [0, 180, 0, 256]) 
+     self.hist_bg = cv2.calcHist([self.hsv_bg], [0, 1], None, [256, 256], [0, 256, 0, 256]) 
      self.hist_bg /= self.hsv_bg.shape[0]	
 
 
   def get_hist_sw(self):
     self.hsv_sw = cv2.cvtColor(self.ref_img[50:200,200:450], cv2.COLOR_BGR2HSV)
   	
-    self.hist_sw = cv2.calcHist([self.hsv_sw], [0, 1], None, [180, 256], [0, 180, 0, 256])
+    self.hist_sw = cv2.calcHist([self.hsv_sw], [0, 1], None, [256, 256], [0, 256, 0, 256])
     print 'sidewalk histogram:', self.hist_sw.shape
     print 'sidewalk hsv:', self.hsv_sw.shape	
-    self.hist_sw /= self.hsv_sw.shape[0]		
+    self.hist_sw /= self.hsv_sw.shape[0]
+    print self.hist_sw
 	
  	
 	
