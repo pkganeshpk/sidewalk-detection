@@ -13,92 +13,61 @@ import math
 
 class image_converter:
 
-  sidewalk_colors = [ [90, 105] , [90, 105], [90, 105]]
+  def __init__(self, ref_img_path):
 
-  def __init__(self, ref_img_path, img_dir):
-    print 'Image_converter'	
- 
-
-    self.imgcount = 0
-    self.p_thresh = 0.5 # Threshold probability for 
-    self.ref_img = cv2.imread(ref_img_path)			
-    	
+    self.p_thresh = 0.9 # Threshold probability for 
+    self.ref_img = cv2.imread(ref_img_path)
+			    	
     self.get_hist_sw()
     self.get_hist_bg()
     assert(self.hist_bg.shape == self.hist_sw.shape)			 
-    print 'correl = ', cv2.compareHist(self.hist_sw, self.hist_bg, cv2.cv.CV_COMP_CORREL)
-    self.cap = 	cv2.VideoCapture(img_dir)
-    self.bgsub = cv2.BackgroundSubtractorMOG()	
 
-  def run_no_ros(self):  
-    pass	
-    while(self.cap.isOpened()):
-	    ret, self.color_img = self.cap.read()
-	    self.find_lines()	
+    rospy.init_node('sidewalk_detection')
+    self.bridge = CvBridge()
 
-	    self.color_new_img()
-            cv2.imshow('color image', self.color_img)
-            # cv2.imshow('edges', self.edges)
-
-    	    cv2.waitKey(20) 
-	    time.sleep(5)
+    self.color_sub = rospy.Subscriber("/camera/color/image_raw",Image,self.color_callback)
+    self.depth_sub = rospy.Subscriber("/camera/depth/image_raw", Image,self.depth_callback)
+    
+    self.color_pub = rospy.Publisher("/sidewalk_detector/color",Image, queue_size = 1)
+    self.depth_in_pub = rospy.Publisher("/sidewalk_detector/depth/points_in", Image , queue_size = 1)	
+    self.depth_out_pub = rospy.Publisher("/sidewalk_detector/depth/points_out",Image, queue_size = 1)
 
 
-  def find_lines(self):
-
-	    gray = cv2.cvtColor(self.color_img,cv2.COLOR_BGR2GRAY)
-	    self.edges = cv2.Canny(gray,0,250,apertureSize = 3)
-	    minLineLength = 50
-	    maxLineGap = 20
-	    self.lines = cv2.HoughLinesP(self.edges, 1, math.pi / 180, 100,minLineLength,maxLineGap)
-	   # for x1,y1,x2,y2 in self.lines[0]:
-    		#cv2.line(self.red_img,(x1,y1),(x2,y2),(0,255,255),2)
 	    		
 
   def color_callback(self,data):
     try:
-      self.color_img = self.bridge.imgmsg_to_cv2(data, "bgr8")
+       self.color_img = self.bridge.imgmsg_to_cv2(data, "bgr8")
     except CvBridgeError as e:
-      print ("Exception:", e)
-  
-  
-	
-  
-	
-    	
-  def color_new_img(self):
-     self.hsv_cur = cv2.cvtColor(self.color_img, cv2.COLOR_BGR2HSV)
-     rows = self.hsv_cur.shape[0]
-     cols = self.hsv_cur.shape[1]
-    
-     assert(self.hsv_cur.shape == self.color_img.shape)
-     self.thres_img = cv2.inRange(self.color_img, np.array([80,80,80]), np.array([130, 130, 130]))	
-
-     self.red_img = self.color_img[:]
-
+      print ("Subscription Exception:", e)
      
-   
+    self.hsv_cur = cv2.cvtColor(self.color_img, cv2.COLOR_BGR2HSV)
+    rows = self.hsv_cur.shape[0]
+    cols = self.hsv_cur.shape[1]
+    
+    assert(self.hsv_cur.shape == self.color_img.shape)
+    self.thres_img = cv2.inRange(self.color_img, np.array([80,80,80]), np.array([130, 130, 130]))	
 
-     for i in xrange(rows):
-	for j in xrange(cols):
-		
-		[hue,sat] = self.hsv_cur[i][j][0:2]
-                assert(hue <= self.hist_sw.shape[0] and sat <= self.hist_sw.shape[1])
-		
-		sum_freq = float(self.hist_bg[hue][sat] + self.hist_sw[hue][sat])
-		if (sum_freq > 0 ):
-		
-			prob = float(self.hist_sw[hue][sat]) / sum_freq
-			if (prob > self.p_thresh and self.thres_img[i][j] == 255  ):
-				
-				self.red_img[i][j] = [ 0, 0, 255] # set to red color 
-
-
+    self.red_img = self.color_img.copy()
   
-				 
-  def threshold_sw(self):
-     pass
 
+    for i in xrange(rows):
+       for j in xrange(cols):
+		
+	    [hue,sat] = self.hsv_cur[i][j][0:2]
+            assert(hue <= self.hist_sw.shape[0] and sat <= self.hist_sw.shape[1])
+
+            sum_freq = float(self.hist_bg[hue][sat] + self.hist_sw[hue][sat])
+	    if (sum_freq > 0 ):
+		
+		prob = float(self.hist_sw[hue][sat]) / sum_freq
+		if (prob > self.p_thresh and self.thres_img[i][j] == 255  ):
+			self.red_img[i][j] = [ 0, 0, 255 ] # set to red color
+
+    try:
+      self.color_pub.publish(self.bridge.cv2_to_imgmsg(self.red_img, "bgr8"))
+    except CvBridgeError as e:
+      print "Publication Exception:", e 
 
   def get_hist_bg(self):
     
@@ -122,24 +91,18 @@ class image_converter:
      self.hsv_bg = cv2.cvtColor(self.bg_img, cv2.COLOR_BGR2HSV)
      self.hist_bg = cv2.calcHist([self.hsv_bg], [0, 1], None, [256, 256], [0, 256, 0, 256]) 
     
-     self.hsv_bg_dest = cv2.normalize(self.hsv_bg, alpha = 0.0, beta = 1.0, norm_type = cv2.NORM_MINMAX)    
-     self.hsv_bg = self.hsv_bg_dest[:]
+     self.hist_bg_dest = cv2.normalize(self.hist_bg, alpha = 0.0, beta = 1.0, norm_type = cv2.NORM_MINMAX)    
+     self.hist_bg = self.hist_bg_dest.copy()
+     	
 	
-     print self.hsv_bg
 
 
   def get_hist_sw(self):
     self.hsv_sw = cv2.cvtColor(self.ref_img[50:200,200:450], cv2.COLOR_BGR2HSV)
-  	
     self.hist_sw = cv2.calcHist([self.hsv_sw], [0, 1], None, [256, 256], [0, 256, 0, 256])
-    print self.hist_sw[0]
-    print 'sidewalk histogram:', self.hist_sw.shape
-    print 'sidewalk hsv:', self.hsv_sw.shape
-
-    self.hsv_sw_dest = cv2.normalize(self.hsv_sw, alpha = 0.0, beta = 1.0, norm_type = cv2.NORM_MINMAX)    
-    self.hsv_sw = self.hsv_sw_dest[:]
+    self.hist_sw_dest = cv2.normalize(self.hist_sw, alpha = 0.0, beta = 1.0, norm_type = cv2.NORM_MINMAX)    
+    self.hist_sw = self.hist_sw_dest.copy()
 	
-    print self.hsv_sw
     
 	
  	
@@ -152,7 +115,16 @@ class image_converter:
     except CvBridgeError as e:
       print ("Exception:", e)
 
-    #cv2.imshow("depth image", self.depth_img)	
-    #cv2.waitKey(0)
+    row_ratio = float(self.depth_img.shape[0]) / float(self.color_img.shape[0])
+    col_ratio = float(self.depth_img.shape[1]) / float(self.color_img.shape[1])  
+	
+    self.depth_img_in = self.depth_img.copy()
+    self.depth_img_out = self.depth_img.copy()
+
+    for i in xrange(self.depth_img.shape[0]):
+	for j in xrange(self.depth_img.shape[1]):
+
+     
+	
 
 
