@@ -31,6 +31,7 @@ class image_converter:
     self.bgsub = cv2.BackgroundSubtractorMOG()	
 
   def run_no_ros(self):  
+    pass	
     while(self.cap.isOpened()):
 	    ret, self.color_img = self.cap.read()
 	    self.find_lines()	
@@ -120,17 +121,26 @@ class image_converter:
       		
      self.hsv_bg = cv2.cvtColor(self.bg_img, cv2.COLOR_BGR2HSV)
      self.hist_bg = cv2.calcHist([self.hsv_bg], [0, 1], None, [256, 256], [0, 256, 0, 256]) 
-     self.hist_bg /= self.hsv_bg.shape[0]	
+    
+     self.hsv_bg_dest = cv2.normalize(self.hsv_bg, alpha = 0.0, beta = 1.0, norm_type = cv2.NORM_MINMAX)    
+     self.hsv_bg = self.hsv_bg_dest[:]
+	
+     print self.hsv_bg
 
 
   def get_hist_sw(self):
     self.hsv_sw = cv2.cvtColor(self.ref_img[50:200,200:450], cv2.COLOR_BGR2HSV)
   	
     self.hist_sw = cv2.calcHist([self.hsv_sw], [0, 1], None, [256, 256], [0, 256, 0, 256])
+    print self.hist_sw[0]
     print 'sidewalk histogram:', self.hist_sw.shape
-    print 'sidewalk hsv:', self.hsv_sw.shape	
-    self.hist_sw /= self.hsv_sw.shape[0]
-    print self.hist_sw
+    print 'sidewalk hsv:', self.hsv_sw.shape
+
+    self.hsv_sw_dest = cv2.normalize(self.hsv_sw, alpha = 0.0, beta = 1.0, norm_type = cv2.NORM_MINMAX)    
+    self.hsv_sw = self.hsv_sw_dest[:]
+	
+    print self.hsv_sw
+    
 	
  	
 	
