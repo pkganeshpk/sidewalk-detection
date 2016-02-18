@@ -12,7 +12,7 @@ shell2$ cd src; python detect_node.py
 This will publish the images to the concerned topics, as well as dump output files in the out/ folder.
 
 ### Issues
-Here are the big issues I faced: The "4 sidewalk histograms" referred to in the Seng paper are nowhere defined. Neither do the referenced papers in the bibliography give any idea. As a result, I had to **make do*8 with whatever I understood. The resulting algorithm identifies many of the sidewalk pixels (but certainly not all) and this affects the overall performance very critically. 
+Here are the big issues I faced: The "4 sidewalk histograms" referred to in the Seng paper are nowhere defined. Neither do the referenced papers in the bibliography give any idea. As a result, I had to **make do** with whatever I understood. The resulting algorithm identifies many of the sidewalk pixels (but certainly not all) //and this affects the overall performance very critically//. 
 
 
 
