@@ -1,5 +1,21 @@
 # sidewalk-detection
 
+
+## Implmentation notes
+
+The implementation uses the approach given in the paper linked, **except** for the issues given later below. To run, place a training image in "src/images/frame0000.jpg" to get the sidewalk and background areas.
+
+shell1$ rosplay realsense.bag
+shell2$ cd src; python detect_node.py
+
+This will publish the images to the concerned topics, as well as dump output files in the out/ folder.
+
+### Issues
+Here are the big issues I faced: The "4 sidewalk histograms" referred to in the Seng paper are nowhere defined. Neither do the referenced papers in the bibliography give any idea. As a result, I had to **make do*8 with whatever I understood. The resulting algorithm identifies many of the sidewalk pixels (but certainly not all) and this affects the overall performance very critically. 
+
+
+
+## Problem Statement
 Sidewalk detection algorithm using the Intel Real Sense Camera. Build a ROS node called “sidewalk_detector” that consumes the replayed data of this rosbag and outputs the following topics:
 
 (1) /sidewalk_detector/color/image_raw
